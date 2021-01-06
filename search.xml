@@ -134,8 +134,8 @@
         <category>Papers</category>
       </categories>
       <tags>
-        <tag>deep learning</tag>
         <tag>NLP</tag>
+        <tag>deep learning</tag>
       </tags>
   </entry>
   <entry>
@@ -146,8 +146,8 @@
         <category>deep learning</category>
       </categories>
       <tags>
-        <tag>pytorch</tag>
         <tag>deep learning</tag>
+        <tag>pytorch</tag>
         <tag>RNN</tag>
       </tags>
   </entry>
