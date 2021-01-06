@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content=",,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="这是一篇关于深度学习在自然语言处理方向的综述.">
+<meta name="keywords" content="NLP,deep learning">
+<meta property="og:type" content="website">
+<meta property="og:title" content="A survey of the Usages of Deep Learning in NLP">
+<meta property="og:url" content="http://www.zicesun.com/posts/a-survey-of-the-usages-of-deep-learning-in-NLP.html">
+<meta property="og:site_name" content="ZIcesun">
+<meta property="og:description" content="这是一篇关于深度学习在自然语言处理方向的综述.">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-01-15T06:57:55.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="A survey of the Usages of Deep Learning in NLP">
+<meta name="twitter:description" content="这是一篇关于深度学习在自然语言处理方向的综述.">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.zicesun.com/posts/a-survey-of-the-usages-of-deep-learning-in-NLP.html">
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-116658050-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-116658050-2');
+</script>
+
+
+
+  <title>A survey of the Usages of Deep Learning in NLP | ZIcesun</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-116658050-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZIcesun</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Live free or die</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-talking">
+          <a href="/talking" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-plane"></i> <br>
+            
+            说说
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-essay">
+          <a href="/categories/essay/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-book"></i> <br>
+            
+            随笔
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+	<h2 class="post-title" itemprop="name headline">A survey of the Usages of Deep Learning in NLP</h2>
+
+
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+        
+          <p>这是一篇关于深度学习在自然语言处理方向的综述.<a id="more"></a></p>
+<p><a href="https://arxiv.org/pdf/1807.10854.pdf" target="_blank" rel="noopener">点击</a>下载原文</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><h3 id="NLP"><a href="#NLP" class="headerlink" title="NLP"></a>NLP</h3><p>NLP是一个交叉学科,涉及计算语言学,认知科学,统计学等等学科.自然语言处理又包含多方面的任务,包括认知,理解, 生成.自然语言认知和理解是让计算机把输入的语言变成meaningful的符号和关系,然后在根据任务目的进行在处理.自然语言生成是计算机数据转化成自然语言.</p>
+<p>NLP的工作可以分为两个子任务:</p>
+<ul>
+<li><p><strong>core areas</strong>:</p>
+<ul>
+<li>Language modeling:</li>
+<li>morphological processing</li>
+<li>dealing with segmentation of meaningful component of words</li>
+<li>parts of speech of words</li>
+<li>syntatic processing or parsing</li>
+<li>semantic parsing</li>
+</ul>
+</li>
+<li><p><strong>applications</strong>:</p>
+<ul>
+<li>information extraction</li>
+<li>translation</li>
+<li>summarization</li>
+<li>question answering</li>
+<li>classification or clustering</li>
+</ul>
+</li>
+</ul>
+<p>接下来对以上每一个小点进行介绍.</p>
+<h3 id="Neural-Networks"><a href="#Neural-Networks" class="headerlink" title="Neural Networks"></a>Neural Networks</h3><p>由于算力巨大提升和大量可用的NLP数据集的公开,神经网络(neural networks)在NLP的使用今年来发展迅速,比如机器翻的质量也愈来愈好.现在NLP任务中采用的神经网络有一下几种:</p>
+<ul>
+<li>Feedward Networks</li>
+<li>Convolutional Neural Networks (CNN)</li>
+<li>Recursive Neural Networks</li>
+<li>Recurrent Neural Networks (RNN)</li>
+<li>Long Short-Term Memory Networks (LSTM)</li>
+<li>Gated Recurrent Unit (GRU)</li>
+</ul>
+<p>除此之外,还有一些其他的技术:</p>
+<ul>
+<li>Attention Mechanisms 注意力机制</li>
+<li>Residual Connections 残差连接</li>
+<li>Dropout</li>
+<li>Encoder-Decoder frameworks</li>
+</ul>
+<p>对于这些神经网络的具体细节,这里不做介绍.想了解的,可以查找相关的技术资料,然后对这些知识点进行学习.</p>
+<h2 id="Core-Areas"><a href="#Core-Areas" class="headerlink" title="Core Areas"></a>Core Areas</h2><h3 id="Language-Modeling"><a href="#Language-Modeling" class="headerlink" title="Language Modeling "></a><strong>Language Modeling </strong></h3><p><a href="https://zhuanlan.zhihu.com/p/28080127" target="_blank" rel="noopener">语言模型</a>,即是判断一句话是否为正常人的话.语言模型形式化的描述就是给定一个字符串，看它是自然语言的概率$P(w_1, w_2, …, w_t)$ .$w_1$ 到$w_t$依次表示这句话中的各个词。有个很简单的推论是：<br>$P(w_1, w_2, …, w_t) = P(w_1) \times P(w_2 | w_1) \times P(w_3 | w_1, w_2) \times … \times P(w_t | w_1, w_2, …, w_{t-1})$<br>常用的语言模型都是在近似地求$P(w_t | w_1, w_2, …, w_{t-1})$。比如 n-gram 模型就是用$P(w_t | w_{t-n+1}, …, w_{t-1})$近似表示前者。</p>
+<p>神经网络在处理语言模型的时候，有几点问题需要考虑分别是：</p>
+<ol>
+<li>同义词（synonyms)</li>
+<li>未登录词 （OOV)</li>
+</ol>
+<p><a href="http://licstar.net/archives/328#s20" target="_blank" rel="noopener"><strong>词向量 (word embedding)</strong></a> 是语言模型的一个产物，能够获取词语之间的语义关系。在词语的表示有离散表示，如： <strong>one-hot</strong>形式，这种表示不能表达词语之间的联系，而且稀疏，当词语数量很大的时候，one-hot就更加稀疏了。word embedding是一种稠密的连续向量表示，在连续的向量空间里，含义相似的词语位置也比较近。甚至词语之间的组合关系，也能够通过向量的表示，比如：$W_(queen) = W_(king) + W_(woman)$</p>
+<p>深度学习在语言模型的应用，主要有以下几点：</p>
+<ol>
+<li>Attention Mechanism的应用</li>
+<li>Residual Memory Networks</li>
+<li>Convolutional Neural Networks. 卷积神经网络应用到语言模型中，一般将pooling替换成full connection.一些特征会在pooling中丢失，而全连接能够在一定程度上保留这些特征。</li>
+<li>Character Aware Neural Language Models. 之前的语言模型是以word为基本单元，这种方法是以character为基本的单元进行处理。</li>
+</ol>
+<h3 id="Morphology"><a href="#Morphology" class="headerlink" title="Morphology"></a>Morphology</h3><p>Morphology 指的是词法，形态学。主要的研究内容是对词根(roots)、词干(stems)，前缀(preffixes)、后缀(suffixes)、中缀(infixes)。在NPL任务中，来自同一个词根的词语，会表示不同的含义，但是彼此语义仍然有联系。</p>
+<h3 id="Parsing"><a href="#Parsing" class="headerlink" title="Parsing"></a>Parsing</h3><p>Parsing 研究的是不同的Word或者phrase如何在一个句子中组织起来，也就是研究语法。Parsing至少可以分成两中模式：</p>
+<ol>
+<li><strong>Constituency Parsing</strong>, 以分层的方式从句子中提取除phrases，在确定短语的语法特征之后，反过来phrases又会组合成一个完整的句子。(<strong>In constituency parsing, phrasal constituents are extracted form a sentence in a hierarchical fashion. Phrasal are identified, which in turn form larger phrases, eventually culminating in conplete sentences.</strong>)</li>
+<li><strong>Dependency Parsing</strong>, 仅关注pairs of individual words之间的关系。（<strong>Dependency parsing on the other hand looks solely at the relationships between pairs of individual words</strong>） 深度学习在dependency parsing中应用蛮广泛的，特别是基于Graph-based parsing，将句子解析成parsing trees，然后找出正确的parsing tree。 graph-based parsing用formal grammar去解析句子。最近的grahp-based方法用到了trainsition-based方法，这类方法只会生成一颗parsing tree，句子中word之间的联系用弧表示，弧的方向表示words之间的依赖关系。</li>
+</ol>
+<h3 id="Semantics"><a href="#Semantics" class="headerlink" title="Semantics"></a>Semantics</h3><p>Semantics的关注点是如何理解words、phrases、sentences甚至是documents的meaning。Distributed Representation是表示Meaning的一种方式。Word Embeddings利用能够获得词语之间的语义联系。<br><br>semantics的任务有：</p>
+<ol>
+<li>Semantic Comparison。两个实体的语义是否一直，其衡量指标是将模型和人主观判断的结果进行比较。</li>
+<li>Sentence Modeling。用向量表示句子的语义。</li>
+</ol>
+<h2 id="Applications"><a href="#Applications" class="headerlink" title="Applications"></a>Applications</h2><h3 id="Information-Extraction"><a href="#Information-Extraction" class="headerlink" title="Information Extraction"></a>Information Extraction</h3><p>从文本中获取显式或者隐式的信息。</p>
+<h3 id="Named-Entity-Recognition"><a href="#Named-Entity-Recognition" class="headerlink" title="Named Entity Recognition"></a>Named Entity Recognition</h3><p>命名实体识别，是指识别出文本中的专有名词，比如日期，时间，价格，产品IDs。一般常用的方法有支持向量机、条件随机场、LSTM网络等。</p>
+<h4 id="Event-Extraction"><a href="#Event-Extraction" class="headerlink" title="Event Extraction"></a>Event Extraction</h4><p>event extraction涉及用来知道事件发生的words或者phrases，这些词表示事件的参与者(participant),比如agent、事件的对象(object)、事件的接受者(recipient)以及事件发生的时间等。也就是说挖掘文本中关于事件的相关信息，比如时间，地点，人物，事件等关于event的描述。</p>
+<p>EventExtraction有四个子任务：</p>
+<ol>
+<li>identifying event mentions or phrases that describe events. 识别除描述事件的描述或者短语</li>
+<li>identitying event triggers, which are the main words, usually verbs or gerunds，sometimes infinitives,that specify the occurence of the events.识别除事件的触发词,表示时间的发生，一般是动词或者动名词，有时候是动词不定时。</li>
+<li>identitying arguments of events.</li>
+<li>identifying arguments’ roles in events</li>
+</ol>
+<h3 id="Relationship-Extraction"><a href="#Relationship-Extraction" class="headerlink" title="Relationship Extraction"></a><a href="http://www.shuang0420.com/2017/04/10/NLP%E7%AC%94%E8%AE%B0%20-%20Relation%20Extraction/" target="_blank" rel="noopener">Relationship Extraction</a></h3><h3 id="Text-Classification"><a href="#Text-Classification" class="headerlink" title="Text Classification"></a><a href="https://www.infoq.cn/article/machine-learning-automatic-classification-of-text-data" target="_blank" rel="noopener">Text Classification</a></h3><h3 id="Summarization"><a href="#Summarization" class="headerlink" title="Summarization"></a><a href="https://daiwk.github.io/posts/nlp-text-summary.html" target="_blank" rel="noopener">Summarization</a></h3><h3 id="Question-Answering"><a href="#Question-Answering" class="headerlink" title="Question Answering"></a><a href="http://www.shuang0420.com/2017/03/02/NLP%20%E7%AC%94%E8%AE%B0%20-%20Question%20Answering%20System/" target="_blank" rel="noopener">Question Answering</a></h3><h3 id="Machine-Translation"><a href="#Machine-Translation" class="headerlink" title="Machine Translation"></a>Machine Translation</h3><h3 id="Image-and-Vidoe-Captioning"><a href="#Image-and-Vidoe-Captioning" class="headerlink" title="Image and Vidoe Captioning"></a><a href="https://zhuanlan.zhihu.com/p/40776101" target="_blank" rel="noopener">Image and Vidoe Captioning</a></h3><p><hr></p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><blockquote>
+<p>[1] <a href="https://arxiv.org/pdf/1807.10854.pdf" target="_blank" rel="noopener">A Survey of the Usages of Deep Learning in Natural Language Processing</a> 原文<br>[2] <a href="https://zhuanlan.zhihu.com/p/28080127" target="_blank" rel="noopener">语言模型</a><br>[3] <a href="http://licstar.net/archives/328#s20" target="_blank" rel="noopener">词向量 (word embedding)</a><br>[4] <a href="https://www.jiqizhixin.com/articles/2018-08-31-2" target="_blank" rel="noopener">Named Entity Recognition</a><br>[5] <a href="http://www.shuang0420.com/2017/04/10/NLP%E7%AC%94%E8%AE%B0%20-%20Relation%20Extraction/" target="_blank" rel="noopener">Relationship Extraction</a><br>[6] <a href="https://www.infoq.cn/article/machine-learning-automatic-classification-of-text-data" target="_blank" rel="noopener">Text Classification</a><br>[7] <a href="https://daiwk.github.io/posts/nlp-text-summary.html" target="_blank" rel="noopener">Summarization</a><br>[8] <a href="http://www.shuang0420.com/2017/03/02/NLP%20%E7%AC%94%E8%AE%B0%20-%20Question%20Answering%20System/" target="_blank" rel="noopener">Question Answering</a><br>[9] <a href="https://zhuanlan.zhihu.com/p/40776101" target="_blank" rel="noopener">Image and Vidoe Captioning</a></p>
+</blockquote>
+<hr>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+ 	<div id="gitalk-container"></div>
+ 	
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="ZIcesun">
+            
+              <p class="site-author-name" itemprop="name">ZIcesun</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/icesuns" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:icesuns@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://weibo.com/u/3902621880" target="_blank" title="微博">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>微博</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="http://www.zhihu.com/people/icesuns" target="_blank" title="知乎">
+                      
+                        <i class="fa fa-fw fa-book"></i>知乎</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                友情链接
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://blog.csdn.net/Icesuns" title="icesuns" target="_blank">icesuns</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.cnblogs.com/qingyunzong" title="扎心了，老铁" target="_blank">扎心了，老铁</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NLP"><span class="nav-number">1.1.</span> <span class="nav-text">NLP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Neural-Networks"><span class="nav-number">1.2.</span> <span class="nav-text">Neural Networks</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Core-Areas"><span class="nav-number">2.</span> <span class="nav-text">Core Areas</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Language-Modeling"><span class="nav-number">2.1.</span> <span class="nav-text">Language Modeling </span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Morphology"><span class="nav-number">2.2.</span> <span class="nav-text">Morphology</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Parsing"><span class="nav-number">2.3.</span> <span class="nav-text">Parsing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Semantics"><span class="nav-number">2.4.</span> <span class="nav-text">Semantics</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Applications"><span class="nav-number">3.</span> <span class="nav-text">Applications</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Information-Extraction"><span class="nav-number">3.1.</span> <span class="nav-text">Information Extraction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Named-Entity-Recognition"><span class="nav-number">3.2.</span> <span class="nav-text">Named Entity Recognition</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Event-Extraction"><span class="nav-number">3.2.1.</span> <span class="nav-text">Event Extraction</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Relationship-Extraction"><span class="nav-number">3.3.</span> <span class="nav-text">Relationship Extraction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Text-Classification"><span class="nav-number">3.4.</span> <span class="nav-text">Text Classification</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Summarization"><span class="nav-number">3.5.</span> <span class="nav-text">Summarization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Question-Answering"><span class="nav-number">3.6.</span> <span class="nav-text">Question Answering</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Machine-Translation"><span class="nav-number">3.7.</span> <span class="nav-text">Machine Translation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Image-and-Vidoe-Captioning"><span class="nav-number">3.8.</span> <span class="nav-text">Image and Vidoe Captioning</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引用"><span class="nav-number">4.</span> <span class="nav-text">引用</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZIcesun</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">14.7k</span>
+  
+</div>
+
+
+
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+  
+  
+  |  本页点击 <span id="busuanzi_value_page_pv"></span> 次
+  |  本站总点击 <span id="busuanzi_value_site_pv"></span> 次
+  |  您是第 <span id="busuanzi_value_site_uv"></span> 位访客
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '0a25b655a2577489330f',
+          clientSecret: '63507e39d6d6c35ed2a33d6961ce748a0d64796d',
+          repo: 'icesuns.github.io',
+          owner: 'icesuns',
+          admin: ['icesuns'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
