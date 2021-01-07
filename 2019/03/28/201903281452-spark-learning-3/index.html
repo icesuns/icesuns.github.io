@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="大数据,Spark,RDD,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Spark是一个基于分布式内存的大数据计算框架，RDD (Resilient Distributed Dataset)是Spark最重要的一个数据抽象。这篇文章记录了我对RDD的一些理解，有不足和错误的地方，请留言指正。">
+<meta name="keywords" content="大数据,Spark,RDD">
+<meta property="og:type" content="article">
+<meta property="og:title" content="学习之路——Spark(3)&lt;br&gt;Spark RDD内部结构">
+<meta property="og:url" content="http://www.zicesun.com/2019/03/28/201903281452-spark-learning-3/index.html">
+<meta property="og:site_name" content="ZIcesun">
+<meta property="og:description" content="Spark是一个基于分布式内存的大数据计算框架，RDD (Resilient Distributed Dataset)是Spark最重要的一个数据抽象。这篇文章记录了我对RDD的一些理解，有不足和错误的地方，请留言指正。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1553766214489&di=d27c3ec134ac12623d9bc93e02e7f19c&imgtype=jpg&src=http%3A%2F%2Fwww.uml.org.cn%2Fsjjm%2Fimages%2F2015112631.jpg">
+<meta property="og:updated_time" content="2019-06-12T08:33:34.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="学习之路——Spark(3)&lt;br&gt;Spark RDD内部结构">
+<meta name="twitter:description" content="Spark是一个基于分布式内存的大数据计算框架，RDD (Resilient Distributed Dataset)是Spark最重要的一个数据抽象。这篇文章记录了我对RDD的一些理解，有不足和错误的地方，请留言指正。">
+<meta name="twitter:image" content="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1553766214489&di=d27c3ec134ac12623d9bc93e02e7f19c&imgtype=jpg&src=http%3A%2F%2Fwww.uml.org.cn%2Fsjjm%2Fimages%2F2015112631.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.zicesun.com/2019/03/28/201903281452-spark-learning-3/">
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-116658050-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-116658050-2');
+</script>
+
+
+
+  <title>学习之路——Spark(3)<br>Spark RDD内部结构 | ZIcesun</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-116658050-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZIcesun</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Live free or die</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-talking">
+          <a href="/talking" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-plane"></i> <br>
+            
+            说说
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-essay">
+          <a href="/categories/essay/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-book"></i> <br>
+            
+            随笔
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.zicesun.com/2019/03/28/201903281452-spark-learning-3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ZIcesun">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZIcesun">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">学习之路——Spark(3)<br>Spark RDD内部结构</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-28T14:53:13+08:00">
+                2019-03-28
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2019-06-12T16:33:34+08:00">
+                2019-06-12
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spark/" itemprop="url" rel="index">
+                    <span itemprop="name">Spark</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3.3k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  12
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+        <div class="post-gallery" itemscope itemtype="http://schema.org/ImageGallery">
+          
+          
+            <div class="post-gallery-row">
+              <a class="post-gallery-img fancybox" href="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1553766214489&di=d27c3ec134ac12623d9bc93e02e7f19c&imgtype=jpg&src=http%3A%2F%2Fwww.uml.org.cn%2Fsjjm%2Fimages%2F2015112631.jpg" rel="gallery_ckjn81rna001itx15dqur0d5r" itemscope itemtype="http://schema.org/ImageObject" itemprop="url">
+                <img src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1553766214489&di=d27c3ec134ac12623d9bc93e02e7f19c&imgtype=jpg&src=http%3A%2F%2Fwww.uml.org.cn%2Fsjjm%2Fimages%2F2015112631.jpg" itemprop="contentUrl">
+              </a>
+            
+          
+
+          
+          </div>
+        </div>
+      
+
+      
+        <p>Spark是一个基于分布式内存的大数据计算框架，<font color="red">RDD (Resilient Distributed Dataset)</font>是Spark最重要的一个数据抽象。这篇文章记录了我对RDD的一些理解，有不足和错误的地方，请留言指正。<a id="more"></a></p>
+<h1 id="什么是RDD"><a href="#什么是RDD" class="headerlink" title="什么是RDD"></a>什么是RDD</h1><p>RDD (Resilient Distributed Dataset)，弹性分布式数据集，是数据集合的抽象。<font color="blue">它代表一个不可变、可分区、里面的元素可并行计算的集合</font>。RDD具有数据流模型的特点：<font color="blue">自动容错、位置感知性调度和可伸缩性</font>。RDD允许用户在执行多个查询时显式地将工作集缓存在内存中，后续的查询能够重用工作集，这极大地提升了查询速度。</p>
+<p>RDD的计算具有<font color="blue">惰性</font>，只有在RDD需要将计算结果提交到Driver或者需要把数据写到文件的时候，计算才真正开始。Spark为RDD的计算提供了两类接口，也就是<font color="blue">转换(transformation)操作和动作（action）操作</font>。其中转换操作，是将RDD转换成另一个RDD，这一步计算是具有惰性延迟的，不会立即执行计算。RDD不能改变，在转换的过程中只会生成一个新的RDD。动作操作，会激发计算。</p>
+<p>RDD的转换操作和动作操作会在后续的博客中详细介绍。</p>
+<hr>
+
+<h1 id="RDD的接口"><a href="#RDD的接口" class="headerlink" title="RDD的接口"></a>RDD的接口</h1><p>在介绍RDD的接口之前，先带着几个思考：</p>
+<ol>
+<li>RDD的结构是什么样子的，怎么表示并行计算单元。</li>
+<li>RDD是分布式数据集合的抽象，但是在分布式条件下，RDD怎么保证数据分布均匀？</li>
+<li>RDD的计算具有惰性，那么它怎么保证计算的准确性，计算流程是什么样的？</li>
+<li>大数据计算，怎么容错？当Spark数据丢失之后，怎么保证数据的可靠性和完整性。</li>
+</ol>
+<p>RDD通过实现一些接口来完成上述的一些问题。</p>
+<h2 id="分区-Partition"><a href="#分区-Partition" class="headerlink" title="分区(Partition)"></a>分区(Partition)</h2><p>RDD内部如何去表示并行计算的一个单元呢？其实是采用分区，也就是RDD的内部数据集合在逻辑上被划分为多个分片，这样每一个分片叫做<font color="blue">分区（Partition）</font>。分区的个数将决定并行计算的粒度，而每一个分区的数据的计算都是在一个单独的任务中进行，因此任务的个数是由RDD的分区的个数决定的（准确来说应该是一个作业的最后一个RDD的分区数决定）。在下图中，每一个RDD里面的单元就是一个分区。</p>
+<p><img src="https://timgsa.baidu.com/timg?image&amp;quality=80&amp;size=b9999_10000&amp;sec=1553769032536&amp;di=c1f141e8d871e2f553de0e734df3e59b&amp;imgtype=0&amp;src=http%3A%2F%2Fwww.51testing.com%2Fattachments%2F2018%2F05%2F15201284_2018051015142910q7f.png" alt></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Partition</span> <span class="keyword">extends</span> <span class="title">Serializable</span></span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">index</span></span>:<span class="type">Int</span></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">hashCode</span></span>():<span class="type">Int</span>=index</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码可以看出，分区在源码级别的实现是Partition类，其实是分区的一个标识，index表示这个分区在RDD中的编号。我们通过RDD的编号和Partition编号就可定位到具体的分区，通过接口，可以层存储介质中提取分区对应的数据。</p>
+<p><font color="red">RDD的分区的原则就是尽可能让分区的个数等于集群核心的数目。</font>当然用户也可以自指定分区的数据，也可以使用系统默认配置，也就是机器的CPU的核心总数。RDD可以通过创建操作和转换操作生成，在转换操作中，分区的个数根据转换操作中对应的多个RDD之间的以来关系得到。<font color="blue">窄依赖</font>的子RDD由父RDD分区个数决定，而<font color="blue">宽依赖</font>或<font color="blue">shuffle依赖</font>由子RDD的分区器（Partitioner）决定。</p>
+<p><font color="red">分区内部数据的分配原则是尽可能让不同分区内的记录数量保持一致，也就是保证数据分布均衡。</font>正如上面所属，窄依赖的子RDD依赖于父RDD，转换之间不会发生shuffle操作，因此在父RDD分区的数据分配方式决定了窄依赖的分配方式。但是在宽依赖中，父RDD到子RDD之间会进行shuffle操作，因此分区数据的分配由子RDD的分区器决定。<font color="blue">哈希分区器</font>不能够保证数据被平均分配到各个分区上，但是<font color="blue">范围分区器</font>能够做到这一点。</p>
+<hr>
+
+<h2 id="依赖-Dependency"><a href="#依赖-Dependency" class="headerlink" title="依赖(Dependency)"></a>依赖(Dependency)</h2><p>在上面也提及到了宽依赖和窄依赖。在Spark中，一个真正的计算标志着一个Job，而一个Job则是由多个转换操作构成。由于Spark的计算具有惰性，只有当遇到一个动作操作的时候，计算任务才被激活。因此经过不同变换之间的RDD形成了一个具有依赖关系的链，或者说是一个<font color="blue">有向无环图（DAG）</font>。在这个有向无环图中，节点表示RDD，子RDD与父RDD分区之间的边则表示数据的依赖关系。</p>
+<h3 id="窄依赖-Narrow-Dependency"><a href="#窄依赖-Narrow-Dependency" class="headerlink" title="窄依赖(Narrow Dependency)"></a>窄依赖(Narrow Dependency)</h3><center><img src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1553789158196&di=bc7bcc0d3a4823eb2761cbc34a973a12&imgtype=0&src=http%3A%2F%2Fsustblog.oss-cn-beijing.aliyuncs.com%2Fblog%2F2018%2Fspark%2FnarrowDependency.png" width="50%" height="30%"></center><br>窄依赖如上图所示，父RDD中的一个分区最多只会被子RDD中的一个分区使用，也就是父RDD中一个分区内的数据不能够被再次分割，必须完整地交给子RDD的一个分区。<br>窄依赖又可以分成<br><br>1. <font color="blue">一对一依赖</font>:一对一依赖很好理解，就是父RDD的分区编号与子RDD的分区编号完全一致，如上图map操作。<br>2. <font color="blue">范围依赖</font>: 范围依赖只被应用到UnionRDD与父RDD之间的依赖关系之中，如上图union操作。<br><br>### 宽依赖（Shuffle Dependency）<br>shuffle依赖中，父RDD中的一个分区可能会被子RDD中的多个分区使用。这时候父RDD的数据会被再次分割，发送给子RDD的一些分区，也就是Shuffle依赖意味着父RDD和子RDD之间存在这shuffle操作。<br><center><img src="https://picdb-1256561721.cos.ap-beijing.myqcloud.com/wide-dependecy.png"></center>
+
+<p>如上图，每一个子RDD的分区会接受来自多个父RDD分区的数据。Shuffle依赖也是后面会讲到的Stage的划分，Spark以是否发生shuffle操作，将一个Job划分为多个Stage进行调度。</p>
+<h3 id="抽象类Dependency"><a href="#抽象类Dependency" class="headerlink" title="抽象类Dependency"></a>抽象类Dependency</h3><p><a href="https://github.com/apache/spark/blob/v2.4.0/core/src/main/scala/org/apache/spark/Dependency.scala" target="_blank" rel="noopener">源码链接</a><br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@DeveloperApi</span></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Dependency</span>[<span class="type">T</span>] <span class="keyword">extends</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">rdd</span></span>: <span class="type">RDD</span>[<span class="type">T</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>依赖在Spark源码中对应实现是Dependency，每个Dependency子类内部都会存储一个RDD对象，其实就是对应的父RDD。如果一次转换操作对应多个父RDD，就会产生多个Dependency对象，所有的Dependency对象存储在子RDD内部。只要遍历子RDD内部的Dependency对象，就能获取该RDD所有的依赖关系。窄依赖和shuffle依赖的源码参见上面的链接。</p>
+<h3 id="依赖与容错机制"><a href="#依赖与容错机制" class="headerlink" title="依赖与容错机制"></a>依赖与容错机制</h3><p>我们之前也提到了RDD之间会形成依赖关系，这些依赖关系会形成一个有向无环图。子RDD记录着它依赖着的父RDD。现在我们假设某一个分区的在计算的时候数据丢失了，我们只要遍历该分区的依赖关系，找到它的父RDD信息，然后沿着这个依赖关系往回追溯，就可以找到该分区数据的来源，然后再沿着依赖关系往后计算，就可以计算出这个分区丢失的数据是什么了。</p>
+<hr>
+
+<h2 id="计算-Computing"><a href="#计算-Computing" class="headerlink" title="计算(Computing)"></a>计算(Computing)</h2><p>RDD的计算是惰性的，一系列的转化只有遇到动作操作的时候才回去计算数据，而分区是数据计算的基本单位。</p>
+<p>RDD的计算会用到一个compute方法，RDD的抽象类要求所有的子类都要实现这个方法，该方法的参数之一是一个Partition对象，目的是计算该分区中的数据。<br>看一下MappedRDD源码</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">compute</span></span>(split:<span class="type">Partition</span>, context:<span class="type">TaskContext</span>)=</span><br><span class="line">  firstParent[<span class="type">T</span>].iterator(split, context).map(f)</span><br></pre></td></tr></table></figure>
+<p>MappedRDD类的compute方法调用当前RDD内的第一个父RDD的iterator方法，该方法拉取父RDD对应的分区内的数据。iterator方法会返回一个迭代对象，迭代器内的每个元素就是父RDD对应分区内的数据记录。RDD的粗粒度转换体现在调用iterator的map方法上，f函数是map转换操作的函数参数，RDD会对每一个分区（而不是一条一条数据记录）内的数据执行单个f操作，最终返回包含所有经过转换过的数据记录的新迭代器，也就是新的分区。换句话说，compute函数就是负责父RDD分区数据到子RDD分区数据的变换逻辑。</p>
+<p>iterator在执行的时候会根据RDD的存储级别，如果存储级别不是None，则说明分区的数据可能存储在了文件系统，也可能是当前RDD执行过cache或者persist等持久化操作，因此执行getOrCompute方法。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Internal method to this RDD; will read from cache if applicable, or otherwise compute it.</span></span><br><span class="line"><span class="comment"> * This should ''not'' be called by users directly, but </span></span><br><span class="line"><span class="comment"> * is available for implementors of custom</span></span><br><span class="line"><span class="comment"> * subclasses of RDD.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">iterator</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] = &#123;</span><br><span class="line">  <span class="keyword">if</span> (storageLevel != <span class="type">StorageLevel</span>.<span class="type">NONE</span>) &#123;</span><br><span class="line">    getOrCompute(split, context)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    computeOrReadCheckpoint(split, context)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><font color="blue">getOrCompute方法</font>会根据RDD的编号和分区编号计算得到当前分区在存储层对应的块编号，通过存储层提供的数据读取借口提取出块的数据。对于getOrCompute方法，会出现两种情况。第一种，数据之前存储在存储截介质中，可能是数据本身就在存储介质，也可能是RDD经过持久化操作并且经历过一次计算过程，这时候数据能够成功提取并返回。第二种情况，数据不存储在介质中，可能是丢失，或者RDD经过持久化操作，但是当前分区的数据是第一次被计算，因此会出现拉取到的数据为none的情况，这意味着需要计算分区数据，则会继续调用RDD类中的computeOrReadCheckpoint方法，并将计算得到的数据缓存到存储介质中，下次就不用再重新计算。</p>
+<p><font color="blue">computeOrReadCheckpoint方法</font>会检查当前RDD是否已经被标记为检查点，如果没有被标记为检查点，则执行自身的compute方法来计算分区的数据，否则直接拉去RDD分区内的数据。对于标记成检查点的情况，当前RDD的父RDD不再是原先转换操作中提供的父RDD，而是被Spark替换成一个Checkpoint对象，该对象中的数据存放在文件系统中，因此最终该对象会从文件系统中读取数据并返回给computeOrReadCheckpoint方法。</p>
+<hr>
+
+<h2 id="分区器-Partitioner"><a href="#分区器-Partitioner" class="headerlink" title="分区器(Partitioner)"></a>分区器(Partitioner)</h2><p>Spark内置了两类分区器，<font color="blue">哈希分区器(Hash Partitioner)</font>和<font color="blue">范围分区器(Range Partitioner)</font><br>分区器的主要作用有以下三点：</p>
+<ol>
+<li>决定RDD的分区数量。</li>
+<li>决定shuffle过程中reducer的个数（实际上也是子RDD的分区个数）以及map端的一条数据应该分配给哪一个分区。</li>
+<li>决定依赖类型，如果父RDD和子RDD都有分区器并且分区器相同，则表示两个RDD之间是窄依赖，否则是Shuffle依赖。</li>
+</ol>
+<h3 id="哈希分区器"><a href="#哈希分区器" class="headerlink" title="哈希分区器"></a>哈希分区器</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * A [[org.apache.spark.Partitioner]] that implements hash-based partitioning using</span></span><br><span class="line"><span class="comment"> * Java's `Object.hashCode`.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Java arrays have hashCodes that are based on the arrays' identities rather than their contents,</span></span><br><span class="line"><span class="comment"> * so attempting to partition an RDD[Array[_]] or RDD[(Array[_], _)] using a HashPartitioner will</span></span><br><span class="line"><span class="comment"> * produce an unexpected or incorrect result.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HashPartitioner</span>(<span class="params">partitions: <span class="type">Int</span></span>) <span class="keyword">extends</span> <span class="title">Partitioner</span> </span>&#123;</span><br><span class="line">  require(partitions &gt;= <span class="number">0</span>, <span class="string">s"Number of partitions (<span class="subst">$partitions</span>) cannot be negative."</span>)</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">numPartitions</span></span>: <span class="type">Int</span> = partitions</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">getPartition</span></span>(key: <span class="type">Any</span>): <span class="type">Int</span> = key <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="literal">null</span> =&gt; <span class="number">0</span></span><br><span class="line">    <span class="keyword">case</span> _ =&gt; <span class="type">Utils</span>.nonNegativeMod(key.hashCode, numPartitions)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">equals</span></span>(other: <span class="type">Any</span>): <span class="type">Boolean</span> = other <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> h: <span class="type">HashPartitioner</span> =&gt;</span><br><span class="line">      h.numPartitions == numPartitions</span><br><span class="line">    <span class="keyword">case</span> _ =&gt;</span><br><span class="line">      <span class="literal">false</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">hashCode</span></span>: <span class="type">Int</span> = numPartitions</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>哈希分区器的实现在HashPartitioner中，其getPartition方法实现很简单，取键值的hashCoder，除上子RDD分区个数，取余即可。<br><img src="https://picdb-1256561721.cos.ap-beijing.myqcloud.com/spark_hashPartitioner.png" alt><br>尽管哈希分区器实现很简单，运行速度很快，但是它不关心键值的分布情况，所以散列到不同发哪去的概率会因数据而异，所以会出现数据倾斜的现象，也就是一部分分区分配的数据很多，一部分很少。</p>
+<h3 id="范围分区器"><a href="#范围分区器" class="headerlink" title="范围分区器"></a>范围分区器</h3><p>对于范围分区器，之后会单独写篇博客，这里附上一片博客给大家作为参考 <a href="https://www.cnblogs.com/tongxupeng/p/10435976.html" target="_blank" rel="noopener"><font color="red">分区器</font></a><br>针对哈希分区器的缺点，范围分区器则在一定程度上避免了这个问题，范围分区器尽量使得所有分区的数据均匀，并且分区内的数据的上界是有序的。<br><img src="https://picdb-1256561721.cos.ap-beijing.myqcloud.com/webwxgetmsgimg.jpg" width="50%"></p>
+<hr>
+
+<h2 id="持久化-Persistence"><a href="#持久化-Persistence" class="headerlink" title="持久化(Persistence)"></a>持久化(Persistence)</h2><p>持久化方法有两个，分别是cache和persist。Cache等价于StorageLevel.Memory_ONLY的persist方法，而persist方法也仅仅是修改当前RDD的存储级别而已。SparkContext中维护了一张哈希表persistentRdds,用语等级所有被持久化的RDD，执行persist操作是，会将RDD的编号作为键值，把RDD记录到persistentRdds表中，unpersist函数会调用SparkContext对象的unpersistRDD方法，除了将RDD从哈希表中移除之外，该方法还会降RDD中的分区对应的所有块从存储介质中删除。</p>
+<hr>
+
+<h2 id="检查点-CheckPoint"><a href="#检查点-CheckPoint" class="headerlink" title="检查点(CheckPoint)"></a>检查点(CheckPoint)</h2><p>检查点机制的实现与持久化是的实现有着较大的区别。检查点并非第一次计算就将计算结果进行存储，而是等到第一个作业结束之后再启动专门的一个作业去完成存储的过程。<br>详见链接 [<font color="red">检查点</font>] (<a href="https://www.cnblogs.com/tongxupeng/p/10439889.html" target="_blank" rel="noopener">https://www.cnblogs.com/tongxupeng/p/10439889.html</a>)   </p>
+<hr>
+
+<h1 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h1><p><a href="https://www.cnblogs.com/tongxupeng/p/10439889.html" target="_blank" rel="noopener">1. 检查点</a><br><a href="https://www.cnblogs.com/tongxupeng/p/10435976.html" target="_blank" rel="noopener">2. 范围分区</a></p>
+
+      
+
+              <div>
+      
+      <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">------ 本文结束------</div>
+    
+</div>
+
+      
+      </div>
+
+            
+        <div class="post-tags">
+          
+            <a href="/tags/大数据/" rel="tag"><i class="fa fa-tag"></i> 大数据</a>
+          
+            <a href="/tags/Spark/" rel="tag"><i class="fa fa-tag"></i> Spark</a>
+          
+            <a href="/tags/RDD/" rel="tag"><i class="fa fa-tag"></i> RDD</a>
+          
+        </div>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>Donate comment here</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/WeChat_pay.jpg" alt="ZIcesun 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/ali_pay.jpg" alt="ZIcesun 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    ZIcesun
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.zicesun.com/2019/03/28/201903281452-spark-learning-3/" title="学习之路——Spark(3)<br>Spark RDD内部结构">http://www.zicesun.com/2019/03/28/201903281452-spark-learning-3/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/27/201903272048-spark-learning-2/" rel="next" title="学习之路——Spark(2)<br>Spark 集群搭建">
+                <i class="fa fa-chevron-left"></i> 学习之路——Spark(2)<br>Spark 集群搭建
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/02/201904021108-spark-scheduler/" rel="prev" title="spark scheduler 内部原理剖析(<font color=" red">转载)">
+                spark scheduler 内部原理剖析(<font color="red">转载</font>) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+
+    </footer>
+  </div>
+  
+  
+  
+
+
+
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+ 	<div id="gitalk-container"></div>
+ 	
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="ZIcesun">
+            
+              <p class="site-author-name" itemprop="name">ZIcesun</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">32</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">38</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/icesuns" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:icesuns@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://weibo.com/u/3902621880" target="_blank" title="微博">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>微博</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="http://www.zhihu.com/people/icesuns" target="_blank" title="知乎">
+                      
+                        <i class="fa fa-fw fa-book"></i>知乎</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                友情链接
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://blog.csdn.net/Icesuns" title="icesuns" target="_blank">icesuns</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.cnblogs.com/qingyunzong" title="扎心了，老铁" target="_blank">扎心了，老铁</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是RDD"><span class="nav-number">1.</span> <span class="nav-text">什么是RDD</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RDD的接口"><span class="nav-number">2.</span> <span class="nav-text">RDD的接口</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#分区-Partition"><span class="nav-number">2.1.</span> <span class="nav-text">分区(Partition)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#依赖-Dependency"><span class="nav-number">2.2.</span> <span class="nav-text">依赖(Dependency)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#窄依赖-Narrow-Dependency"><span class="nav-number">2.2.1.</span> <span class="nav-text">窄依赖(Narrow Dependency)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#抽象类Dependency"><span class="nav-number">2.2.2.</span> <span class="nav-text">抽象类Dependency</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖与容错机制"><span class="nav-number">2.2.3.</span> <span class="nav-text">依赖与容错机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#计算-Computing"><span class="nav-number">2.3.</span> <span class="nav-text">计算(Computing)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分区器-Partitioner"><span class="nav-number">2.4.</span> <span class="nav-text">分区器(Partitioner)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#哈希分区器"><span class="nav-number">2.4.1.</span> <span class="nav-text">哈希分区器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#范围分区器"><span class="nav-number">2.4.2.</span> <span class="nav-text">范围分区器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#持久化-Persistence"><span class="nav-number">2.5.</span> <span class="nav-text">持久化(Persistence)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#检查点-CheckPoint"><span class="nav-number">2.6.</span> <span class="nav-text">检查点(CheckPoint)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#引用"><span class="nav-number">3.</span> <span class="nav-text">引用</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZIcesun</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">34.7k</span>
+  
+</div>
+
+
+
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+  
+  
+  |  本页点击 <span id="busuanzi_value_page_pv"></span> 次
+  |  本站总点击 <span id="busuanzi_value_site_pv"></span> 次
+  |  您是第 <span id="busuanzi_value_site_uv"></span> 位访客
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '0a25b655a2577489330f',
+          clientSecret: '63507e39d6d6c35ed2a33d6961ce748a0d64796d',
+          repo: 'icesuns.github.io',
+          owner: 'icesuns',
+          admin: ['icesuns'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
